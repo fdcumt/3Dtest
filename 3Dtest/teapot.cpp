@@ -53,6 +53,7 @@ bool Setup()
 	// Set projection matrix.
 	//
 
+
 	D3DXMATRIX proj;
 	D3DXMatrixPerspectiveFovLH(
 			&proj,
@@ -101,7 +102,6 @@ bool Display(float timeDelta)
 
 		// Draw teapot using DrawSubset method with 0 as the argument.
 		Teapot->DrawSubset(0);
-
 		Device->EndScene();
 		Device->Present(0, 0, 0, 0);
 	}

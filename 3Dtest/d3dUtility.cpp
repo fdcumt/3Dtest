@@ -11,6 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "d3dUtility.h"
+#include "common.h"
 
 bool d3d::InitD3D(
 	HINSTANCE hInstance,
@@ -44,7 +45,7 @@ bool d3d::InitD3D(
 		
 	HWND hwnd = 0;
 	hwnd = ::CreateWindow(TEXT("Direct3D9App"), TEXT("Direct3D9App"), 
-		WS_EX_TOPMOST,
+		WS_OVERLAPPEDWINDOW, //WS_EX_TOPMOST
 		0, 0, width, height,
 		0 /*parent hwnd*/, 0 /* menu */, hInstance, 0 /*extra*/); 
 
@@ -155,6 +156,7 @@ int d3d::EnterMsgLoop( bool (*ptr_display)(float timeDelta) )
 		}
 		else
         {	
+			utility::OutPutDebugPrintf("msg.message %d ~n ", msg.message);
 			float currTime  = (float)timeGetTime();
 			float timeDelta = (currTime - lastTime)*0.001f;
 
