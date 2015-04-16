@@ -22,58 +22,86 @@ IDirect3DDevice9* Device = 0;
 
 const int Width  = 640;
 const int Height = 480;
+const float PI = 3.14f;
 
 // Mesh interface that will store the teapot data and contains
 // ma method to render the teapot data.
 ID3DXMesh* Teapot = 0;
+
+// vertex buffer to store our triangle data.
+IDirect3DVertexBuffer9* Triangle = 0;
+
+
+struct Vertex 
+{
+	Vertex() {}
+	Vertex( float x, float y, float z) 
+	{
+		_x=x;
+		_y=y;
+		_z=z;
+	}
+	float _x, _y, _z;
+	static const DWORD FVF;
+};
+
+const DWORD Vertex::FVF = D3DFVF_XYZ;
 
 //
 // Framework Functions
 //
 bool Setup()
 {
-	//
-	// Create the teapot geometry.
-	//
+	// create the vertex buffer 
+	Device->CreateVertexBuffer(
+		3*sizeof(Vertex),
+		D3DUSAGE_WRITEONLY, 
+		Vertex::FVF, 
+		D3DPOOL_MANAGED, 
+		&Triangle,
+		0);
 
-	D3DXCreateTeapot(Device, &Teapot, 0);
+	// fill the buffers with the triangle data
+	Vertex* vertices;
+	Triangle->Lock(0, 0, (void **)&vertices, 0);
+	
+	vertices[0] = Vertex(-1.0f, 0.0f, 2.0f);
+	vertices[1] = Vertex( 0.0f, 1.0f, 2.0f);
+	vertices[2] = Vertex( 1.0f, 0.0f, 2.0f);
 
-	//
-	// Position and aim the camera.
-	//
+	Triangle->Unlock();
 
-	D3DXVECTOR3 position(0.0f, 0.0f, -3.0f);
-	D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
-    D3DXMATRIX V;
-	D3DXMatrixLookAtLH(&V, &position, &target, &up);
+
+	// 设置相机位置,即观察点以及观察视角等
+	D3DXVECTOR3 Eye(0.0f, 0.0f, -5.0f);
+	D3DXVECTOR3 At(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
+	D3DXMATRIX V;
+	D3DXMatrixLookAtLH(&V, &Eye, &At, &Up);
 	Device->SetTransform(D3DTS_VIEW, &V);
 
-	//
-	// Set projection matrix.
-	//
-
-
+	// 设置目标模型矩阵,即被观察事物
 	D3DXMATRIX proj;
 	D3DXMatrixPerspectiveFovLH(
-			&proj,
-			D3DX_PI * 0.5f, // 90 - degree
-			(float)Width / (float)Height,
-			1.0f,
-			1000.0f);
+		&proj,
+		D3DX_PI*0.5f,
+		float(Width)/float(Height),
+		1.0f, 1000.0f);
 	Device->SetTransform(D3DTS_PROJECTION, &proj);
 
-	//
-	// Switch to wireframe mode.
-	//
 
-	Device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
+	//
+	// Set wireframe mode render state.
+	
+	Device->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME); //设置渲染状态
+	Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
 
 	return true;
 }
 void Cleanup()
 {
-	d3d::Release<ID3DXMesh*>(Teapot);
+	d3d::Release<IDirect3DVertexBuffer9*>(Triangle);
 }
 
 bool Display(float timeDelta)
@@ -89,7 +117,7 @@ bool Display(float timeDelta)
 		D3DXMatrixRotationY(&Ry, y);
 
 		y += timeDelta;
-		if(y >= 6.28f)
+		if(y >= PI*2)
 			y = 0.0f;
 
 		Device->SetTransform(D3DTS_WORLD, &Ry);
@@ -100,8 +128,11 @@ bool Display(float timeDelta)
 		Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 		Device->BeginScene();
 
-		// Draw teapot using DrawSubset method with 0 as the argument.
-		Teapot->DrawSubset(0);
+		Device->SetStreamSource(0, Triangle, 0, sizeof(Vertex));
+		Device->SetFVF(Vertex::FVF);
+
+		// draw one triangle
+		Device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
 		Device->EndScene();
 		Device->Present(0, 0, 0, 0);
 	}

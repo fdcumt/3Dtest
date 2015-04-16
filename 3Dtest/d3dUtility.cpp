@@ -156,7 +156,6 @@ int d3d::EnterMsgLoop( bool (*ptr_display)(float timeDelta) )
 		}
 		else
         {	
-			utility::OutPutDebugPrintf("msg.message %d ~n ", msg.message);
 			float currTime  = (float)timeGetTime();
 			float timeDelta = (currTime - lastTime)*0.001f;
 
